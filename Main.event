@@ -1,0 +1,36 @@
+// If you don't use two-palette animations, you don't need to install this patch.
+//
+// This patch will allow battle animations to use two palettes instead of one. To enable two palettes,
+// set bit 0 of animstruct +0x8w. This word is empty in vanilla, and probably used as padding.
+// For two-palette battle animations, ensure the battle animation palette is uncompressed.
+// Single-palette battle animations still need to use compressed palettes.
+//
+// This patch will break the ballista palette for animation 0x9F, archer with ballista.
+// However, you can create individual animentries for each ballista's palette,
+// using uncompressed palettes. Status effects and other palette-colour changes
+// will apply to both the archer and the ballista's palettes, however.
+#ifndef _FE8_
+    ERROR "You're not assembling to an FE8 ROM!"
+#endif
+
+#include "Extensions/Hack Installation.txt"
+#include "EAstdlib.event"
+
+#ifndef FreeSpace
+	#define FreeSpace 0x1000000
+	ORG FreeSpace
+#endif
+
+#ifndef ClassAnimTable
+  #define ClassAnimTable (0xc00008-0x20)
+#endif
+#ifndef AnimTableEntry
+  #define AnimTableEntry(index) "ORG ClassAnimTable + ((index) * 0x20)"
+#endif
+// If you've repointed Character Palettes, give this the new pointer.
+#ifndef CharPalettes
+  #define CharPalettes 0x8EF8008
+#endif
+
+#include "ASM/ASM.event"
+#include "Anims/AnimInstaller.event"
