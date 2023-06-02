@@ -16,6 +16,23 @@ from PIL import Image
 from PIL import ImageChops
 
 # Initialized to False. Can be set by extra setting in battle anim script.
+# If True, palettedata will not be compressed. This can be useful if trying
+# to display >2 battle animations.
+UNCOMPPALDATA = False
+
+# Initialized to False. Can be set by extra setting in battle anim script.
+# If True, framedata will not be compressed. This can be useful if trying
+# to display >2 battle animations, as it can be hard to find the free RAM
+# to decompress framedata to.
+UNCOMPFRAMEDATA = False
+
+# Initialized to False. Can be set by extra setting in battle anim script.
+# If True, both ltr- and rtloamdata will not be compressed. This can be
+# useful if trying to display >2 battle animations, as it can be hard to
+# find the free RAM to decompress oamdata to.
+UNCOMPOAMDATA = False
+
+# Initialized to False. Can be set by extra setting in battle anim script.
 # If True, sprite sheets will be  one-dimensional.
 # Normally, either OAM can be conserved at the cost of more sheets,
 # (which costs more ROM and leads to more decompression in equal time)
@@ -529,6 +546,9 @@ def setSheetDim(dim, half):
 
 # Main parse script.
 def main():
+  global UNCOMPPALDATA
+  global UNCOMPFRAMEDATA
+  global UNCOMPOAMDATA
   global NOSPLITSPRITES
   global EMPTYTILEPER64
   global _2PALETTES
@@ -562,7 +582,17 @@ def main():
   # Main parse loop.
   for i, line in enumerate(scriptFile):
     if header and line[0] == '@':           # Extra setting.
-      if line[2:11] == "1DSPRITES":
+      
+      if line[2:15] == "UNCOMPPALDATA":
+        UNCOMPPALDATA = True
+        continue
+      elif line[2:17] == "UNCOMPFRAMEDATA":
+        UNCOMPFRAMEDATA = True
+        continue
+      elif line[2:15] == "UNCOMPOAMDATA":
+        UNCOMPOAMDATA = True
+        continue
+      elif line[2:11] == "1DSPRITES":
         setSheetDim(1, HALFSIZESHEETS)
         continue
       elif line[2:11] == "2PALETTES":
@@ -711,6 +741,7 @@ def main():
   
   # Write data to installer file.
   # Anim entry.
+  settingBitfield = UNCOMPPALDATA | (UNCOMPFRAMEDATA<<1) | (UNCOMPOAMDATA<<2) | (_2PALETTES<<3)
   defs = """#ifndef ClassAnimTable
   #define ClassAnimTable (0xc00008-0x20)
 #endif
@@ -720,13 +751,13 @@ def main():
   animEntry = """\n\nPUSH
   AnimTableEntry({animName}) // CHANGE THIS TO THE SLOT YOU ARE REPLACING
   String("CoolAnim")
-  WORD {palSetting}
+  WORD {settingBitfield}
   POIN Anim_{animName}_sectiondata
   POIN Anim_{animName}_framedata
   POIN Anim_{animName}_rtl Anim_{animName}_ltr Anim_{animName}_pal
 POP"""
   outputFile.write(defs)
-  outputFile.write(animEntry.format(animName=animName, palSetting=str(int(_2PALETTES))))
+  outputFile.write(animEntry.format(animName=animName, settingBitfield=str(settingBitfield)))
   
   # Palette.
   if not len(imageFileNameDic):
@@ -739,46 +770,69 @@ POP"""
   pal = b''
   for p in pal2:
     pal += p.to_bytes(2, byteorder='little')
-  if _2PALETTES:
-    outputFile.write(b_to_EA(pal[:256]))                      # Eight palettes, uncompressed.
+  palsize = 128 << _2PALETTES
+  if UNCOMPPALDATA:
+    outputFile.write(b_to_EA(pal[:palsize]))                  # Uncompressed.
   else:
-    outputFile.write(b_to_EA(lzss.compress(pal[:128])))       # Four palettes, compressed.
+    outputFile.write(b_to_EA(lzss.compress(pal[:palsize])))   # Compressed.
   
   # SectionData.
   outputFile.write("\n\nAnim_"+animName+"_sectiondata:\n")
   outputFile.write(b_to_EA(sectionData))
   
-  # FrameData.
-  # Most of this is stolen from circleseverywhere's Animation Assembler.
+  # FrameData. Most of this is stolen from circleseverywhere's Animation Assembler.
   size = len(frameData)
-  outputFile.write("\n\nAnim_"+animName+"_framedata:\n")
-  outputFile.write(int_to_EA(((size<<8) | 0x10), 4))
-  outputFile.write(" 0")
-  i = 0
-  addZero = False
-  isPointer = False
-  for i in range(0, size, 4):
-    if isPointer:
-      sheetNum = int.from_bytes(frameData[i:i+4], byteorder='little')
-      outputFile.write("; POIN2 Anim_"+animName+"_Sheet_"+str(sheetNum)+"; BYTE")
-      isPointer = False
-    elif frameData[i+3] == 0x86:
-      isPointer = True
-      outputFile.write(" " + b_to_EA(frameData[i:i+4])[5:])
-    else:
-      outputFile.write(" " + b_to_EA(frameData[i:i+4])[5:])
-    if addZero:
-      addZero = False
-      outputFile.write(" 0")
-    else:
-      addZero = True
+  outputFile.write("\n\nAnim_"+animName+"_framedata:")
+  
+  if UNCOMPFRAMEDATA:
+    # Uncompressed.
+    isPointer = False
+    for i in range(0, size, 4):
+      if isPointer:
+        sheetNum = int.from_bytes(frameData[i:i+4], byteorder='little')
+        outputFile.write("\nPOIN Anim_"+animName+"_Sheet_"+str(sheetNum))
+        isPointer = False
+      elif frameData[i+3] == 0x86:
+        isPointer = True
+        outputFile.write("\nWORD " + str(hex(int.from_bytes(frameData[i:i+4], byteorder='little'))))
+      else: 
+        outputFile.write("\nWORD " + str(hex(int.from_bytes(frameData[i:i+4], byteorder='little'))))
+  else:
+    # Compressed.
+    outputFile.write("\n")
+    outputFile.write(int_to_EA(((size<<8) | 0x10), 4))
+    outputFile.write(" 0")
+    i = 0
+    addZero = False
+    isPointer = False
+    for i in range(0, size, 4):
+      if isPointer:
+        sheetNum = int.from_bytes(frameData[i:i+4], byteorder='little')
+        outputFile.write("; POIN2 Anim_"+animName+"_Sheet_"+str(sheetNum)+"; BYTE")
+        isPointer = False
+      elif frameData[i+3] == 0x86:
+        isPointer = True
+        outputFile.write(" " + b_to_EA(frameData[i:i+4])[5:])
+      else:
+        outputFile.write(" " + b_to_EA(frameData[i:i+4])[5:])
+      if addZero:
+        addZero = False
+        outputFile.write(" 0")
+      else:
+        addZero = True
   outputFile.write("\nALIGN 4")
   
   # OAMData.
   outputFile.write("\n\nAnim_"+animName+"_rtl:\n")
-  outputFile.write(b_to_EA(lzss.compress(rtlOAMData)))
+  if UNCOMPOAMDATA:
+    outputFile.write(b_to_EA(rtlOAMData))
+  else:
+    outputFile.write(b_to_EA(lzss.compress(rtlOAMData)))
   outputFile.write("\n\nAnim_"+animName+"_ltr:\n")
-  outputFile.write(b_to_EA(lzss.compress(ltrOAMData)))
+  if UNCOMPOAMDATA:
+    outputFile.write(b_to_EA(ltrOAMData))
+  else:
+    outputFile.write(b_to_EA(lzss.compress(ltrOAMData)))
   
   # Sheets.
   for id, sheet in enumerate(sheets):

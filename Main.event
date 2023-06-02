@@ -21,6 +21,17 @@
 	ORG FreeSpace
 #endif
 
+// Params
+  // Animation data +0x8 word has been repurposed as a bitfield, Animation Bitfield, AB.
+  BA2_AB_UNCOMPPALDATA:       BYTE 0
+  BA2_AB_UNCOMPFRAMEDATA:     BYTE 1
+  BA2_AB_UNCOMPOAMDATA:       BYTE 2
+  BA2_AB_2PALETTES:           BYTE 3
+  
+  // RAM location for decomping palettes of 2-palette animations.
+  ALIGN 4; BA2_2PALETTERAM:
+  WORD 0x300428C
+
 #ifndef ClassAnimTable
   #define ClassAnimTable (0xc00008-0x20)
 #endif

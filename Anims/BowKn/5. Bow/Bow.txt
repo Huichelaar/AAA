@@ -1,3 +1,4 @@
+@ UNCOMPPALDATA
 @ 2PALETTES
 /// - Mode 1
 C03

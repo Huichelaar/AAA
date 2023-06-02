@@ -1,14 +1,14 @@
-// Some assembly to enable uncompressed palettes
-// for battle anims that use two palettes.
+// Some assembly to enable uncompressed
+// and 32 colour palette battle anims.
 
 PUSH
 
-  // Don't decompress uncompressed palettes, left AIS.
+  // Load palettes whether comp/uncomp 16-col/32-col. Left AIS.
   ORG 0x59A3C
   SHORT 0x46C0
   ORG 0x59A40
   SHORT 0x496F 0x2200
-  jumpToHack(BA2_PrepPalette)
+  jumpToHack(BA2_loadPal)
   ORG 0x59A82           // This would overwrite our second palette to one pointed to in 0x203E19C.
   SHORT 0x46C0 0x46C0   // This breaks the ballista's colours in ballista anim 0x9F.
   
@@ -17,9 +17,10 @@ PUSH
   SHORT 0x46C0
   ORG 0x59B22
   SHORT 0x4937 0x3104 0x2201
-  jumpToHack(BA2_PrepPalette)
+  jumpToHack(BA2_loadPal)
   ORG 0x59B64           // This would overwrite our second palette to one pointed to in 0x203E1A0.
   SHORT 0x46C0 0x46C0   // This breaks the ballista's colours in ballista anim 0x9F.
+  
   
   // Use two palettes instead of one, when updating palettes.
   ORG 0x59A72       // When initially loading palettes.
@@ -63,9 +64,7 @@ PUSH
   
 POP
 
-ALIGN 4
-BA2_PrepPalette:
-#include "PrepPalette.lyn.event"
+ALIGN 4; #include "decompBanimHooks.lyn.event"
 
 ALIGN 4
 BA2_WhitePalette:

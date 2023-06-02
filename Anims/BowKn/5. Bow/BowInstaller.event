@@ -6,9 +6,18 @@
 #endif
 
 PUSH
+  AnimTableEntry(0x3)
+  String("CoolAnim")
+  WORD 9
+  POIN Anim_Bow_sectiondata
+  POIN Anim_Bow_framedata
+  POIN Anim_Bow_rtl Anim_Bow_ltr Anim_Bow_pal
+POP
+
+PUSH
   AnimTableEntry(0x19)
   String("CoolAnim")
-  WORD 1
+  WORD 9
   POIN Anim_Bow_sectiondata
   POIN Anim_Bow_framedata
   POIN Anim_Bow_rtl Anim_Bow_ltr Anim_Bow_pal

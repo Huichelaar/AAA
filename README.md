@@ -1,3 +1,6 @@
+# NOTE
+I'm currently changing things here, so the README is outdated. There isn't a stable release yet. Version from January 2022 should be stable enough though, so if you want to play around with AA2, use that one.
+
 # AA2
 Made by Huichelaar. I heavily referenced [FEBuilderGBA](https://github.com/FEBuilderGBA/FEBuilderGBA/blob/master/FEBuilderGBA/ImageUtilOAM.cs). I also referenced circleseverywhere's [Animation Assembler](https://www.dropbox.com/sh/xe3bk2tn87zboif/AACTeniihbt-NQWrTpn6F5OSa?dl=0). This is also where I took lzss.py from. lzss.py is used to compress palettes and spritesheets.
 
