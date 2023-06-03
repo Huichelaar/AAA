@@ -1,4 +1,44 @@
 .thumb
+@ Hooked at 0x59A28 and 0x59B08.
+@ Decompresses compressed battle anim frameData and
+@ avoids decompressing uncompressed battle anim frameData.
+@ Registers:
+@   r0: Battle anim struct address.
+@   r1: Default RAM location to store decompressed frameData in.
+@   r2: Either 0 (Left AIS) or 1 (Right AIS).
+@   r3: Free.
+
+.global BA2_loadFrameData
+.type BA2_loadFrameData, %function
+BA2_loadFrameData:
+push  {r4, r14}
+
+@ Vanilla, overwritten by hook.
+@ Stores pointer to sectionData in RAM.
+ldr   r4, =gpBattleAnimFrameStartLookup
+lsl   r3, r2, #0x2
+add   r4, r3
+ldr   r3, [r0, #0xC]
+str   r3, [r4]
+
+ldr   r2, [r0, #0x8]
+ldr   r3, =BA2_AB_UNCOMPFRAMEDATA
+ldrb  r3, [r3]
+mov   r4, #0x1
+lsl   r4, r3
+tst   r2, r4
+bne   uncompFD
+  ldr   r0, [r0, #0x10]
+  swi   #0x11               @ Decompress.
+uncompFD:
+
+mov   r0, r7                @ Args for overwriting archer
+mov   r1, #0x0              @ palette function.
+pop   {r4}
+pop   {r2}
+bx    r2
+
+
 @ Hooked at 0x59A44 and 0x59B28.
 @ Decompresses compressed battle anim palettes and
 @ avoids decompressing uncompressed battle anim palettes.
@@ -64,7 +104,7 @@ ldrb  r3, [r3]
 mov   r1, #0x1
 lsl   r1, r3
 tst   r5, r1
-bne   uncomp
+bne   uncompPAL
   mov   r3, r12
   add   r3, r2
   str   r3, [r6]
@@ -78,7 +118,7 @@ bne   uncomp
   mov   r1, #0x1
   lsl   r1, r3
   tst   r5, r1
-  bne   uncomp
+  bne   uncompPAL
     mov   r0, r4
     mov   r1, r7
     ldr   r2, =0x8059971      @ Seems to copy independence (fifth) palette
@@ -86,7 +126,7 @@ bne   uncomp
 
 
 @ Set return address.
-uncomp:
+uncompPAL:
 cmp   r7, #0x0
 bne   L1
   ldr   r1, =0x8059A6F

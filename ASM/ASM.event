@@ -3,6 +3,37 @@
 
 PUSH
 
+  // During banim scaling, use FrameData, whether compressed or uncompressed.
+  // Also OAMData, whether compressed or uncompressed.
+  // Left AIS.
+  ORG 0x56A1E
+  SHORT 0x2000      // mov r0, #0x0         @ indicates this is Left AIS.
+  callHack_r1(BA2_bAnimScaleHook)
+  // Right AIS.
+  ORG 0x56A40
+  SHORT 0x5842      // ldr r2, [r0, r1]     @ This makes the next instruction redundant.
+  SHORT 0x2001      // mov r0, #0x1         @ indicates this is Right AIS.
+  callHack_r1(BA2_bAnimScaleHook)
+
+  // Reference FrameData, whether compressed or uncompressed, when executing command 0xD.
+  ORG 0x592E8
+  callHack_r1(BA2_commandDHook)
+
+  // Load FrameData, whether compressed or uncompressed.
+  // Left AIS.
+  ORG 0x59A22
+  SHORT 0x1C20      // mov r0, r4           @ r0 now contains battle anim struct address.
+  ORG 0x59A26
+  SHORT 0x2200      // mov r2, #0x0         @ indicates this is Left AIS.
+  callHack_r3(BA2_loadFrameData)
+  // Right AIS.
+  ORG 0x59B00
+  SHORT 0x4450      // add r0, r10          @ r0 now contains battle anim struct address.
+  SHORT 0x1C06      // add r6, r0           @ r6 now contains battle anim struct address.
+  SHORT 0x2201      // mov r2, #0x1         @ indicates this is Right AIS.
+  ORG 0x59B08
+  callHack_r3(BA2_loadFrameData)
+
   // Load palettes whether comp/uncomp 16-col/32-col. Left AIS.
   ORG 0x59A3C
   SHORT 0x46C0
@@ -11,8 +42,7 @@ PUSH
   jumpToHack(BA2_loadPal)
   ORG 0x59A82           // This would overwrite our second palette to one pointed to in 0x203E19C.
   SHORT 0x46C0 0x46C0   // This breaks the ballista's colours in ballista anim 0x9F.
-  
-  // Same as above, but for right AIS.
+  // Right AIS.
   ORG 0x59B1E
   SHORT 0x46C0
   ORG 0x59B22
@@ -21,6 +51,50 @@ PUSH
   ORG 0x59B64           // This would overwrite our second palette to one pointed to in 0x203E1A0.
   SHORT 0x46C0 0x46C0   // This breaks the ballista's colours in ballista anim 0x9F.
   
+  // When initializing AISes, use FrameData, whether compressed or uncompressed.
+  ORG 0x59E72
+  SHORT 0x46AC      // mov r12, r5          @ r12 now contains roundtype.
+  SHORT 0x2200      // mov r2, #0x0         @ Indicates this is Front Left AIS.
+  SHORT 0x46C0      // nop                  @ Need 4-alignment to hook.
+  jumpToHack(BA2_initFrameData)
+  ORG 0x59EC6
+  SHORT 0x4694      // mov r12, r2          @ r12 now contains roundtype.
+  SHORT 0x2201      // mov r2, #0x1         @ Indicates this is Back Left AIS.
+  SHORT 0x46C0      // nop                  @ Need 4-alignment to hook.
+  jumpToHack(BA2_initFrameData)
+  ORG 0x59FA0
+  SHORT 0x469C      // mov r12, r3          @ r12 now contains roundtype.
+  SHORT 0x2202      // mov r2, #0x2         @ Indicates this is Front Right AIS.
+  jumpToHack(BA2_initFrameData)
+  ORG 0x59FF2
+  SHORT 0x46B4      // mov r12, r6          @ r12 now contains roundtype.
+  SHORT 0x2203      // mov r2, #0x3         @ Indicates this is Back Right AIS.
+  SHORT 0x46C0      // nop                  @ Need 4-alignment to hook.
+  jumpToHack(BA2_initFrameData)
+  // When initializing AISes, use OAMData, whether compressed or uncompressed.
+  ORG 0x59EAC
+  SHORT 0x749F      // strb r7, [r3, #0x12] @ moved this instruction up.
+  SHORT 0x469C      // mov r12, r3          @ r12 now contains pointer to AIS.
+  SHORT 0x2100      // mov r1, #0x0         @ Indicates this is Front Left AIS.
+  SHORT 0x46C0      // nop                  @ Need 4-alignment to hook.
+  jumpToHack(BA2_initOAMData)
+  ORG 0x59F00
+  SHORT 0x749F      // strb r7, [r3, #0x12] @ moved this instruction up.
+  SHORT 0x469C      // mov r12, r3          @ r12 now contains pointer to AIS.
+  SHORT 0x2101      // mov r1, #0x1         @ Indicates this is Back Left AIS.
+  SHORT 0x46C0      // nop                  @ Need 4-alignment to hook.
+  jumpToHack(BA2_initOAMData)
+  ORG 0x59FDA
+  SHORT 0x749D      // strb r5, [r3, #0x12] @ moved this instruction up.
+  SHORT 0x469C      // mov r12, r3          @ r12 now contains pointer to AIS.
+  SHORT 0x2102      // mov r1, #0x2         @ Indicates this is Front Right AIS.
+  jumpToHack(BA2_initOAMData)
+  ORG 0x5A02C
+  SHORT 0x749D      // strb r5, [r3, #0x12] @ moved this instruction up.
+  SHORT 0x469C      // mov r12, r3          @ r12 now contains pointer to AIS.
+  SHORT 0x2103      // mov r1, #0x3         @ Indicates this is Back Right AIS.
+  SHORT 0x46C0      // nop                  @ Need 4-alignment to hook.
+  jumpToHack(BA2_initOAMData)
   
   // Use two palettes instead of one, when updating palettes.
   ORG 0x59A72       // When initially loading palettes.
@@ -64,7 +138,10 @@ PUSH
   
 POP
 
-ALIGN 4; #include "decompBanimHooks.lyn.event"
+ALIGN 4; #include "bAnimInitHooks.lyn.event"
+ALIGN 4; #include "decompBAnimHooks.lyn.event"
+ALIGN 4; BA2_commandDHook: #include "commandDHook.lyn.event"
+ALIGN 4; BA2_bAnimScaleHook: #include "bAnimScaleHook.lyn.event"
 
 ALIGN 4
 BA2_WhitePalette:
