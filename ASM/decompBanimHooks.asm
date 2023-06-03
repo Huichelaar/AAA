@@ -140,3 +140,54 @@ pop   {r5-r7}
 bx    r1
 GOTO_R2:
 bx    r2
+
+
+@ Hooked at 0x59AD0 and 0x59B70.
+@ Decompresses compressed battle anim OAMData and
+@ avoids decompressing uncompressed battle anim OAMData.
+@ Registers:
+@   r0: Battle anim struct address.
+@   r1: 0 for Left AIS, 1 for Right AIS.
+@   r2: Free.
+@   r3: Free.
+.global BA2_loadOAMData
+.type BA2_loadOAMData, %function
+BA2_loadOAMData:
+push  {r4-r5, r14}
+mov   r4, r0
+mov   r5, r1
+
+@ Grab battle animation.
+ldr   r1, [r4, #0x8]      @ Battle animation bitfield.
+neg   r2, r5
+add   r2, #0x6
+lsl   r2, #0x2
+ldr   r0, [r4, r2]        @ OAMData.
+
+@ Check if battle animation uses uncompressed OAMdata.
+ldr   r3, =BA2_AB_UNCOMPOAMDATA
+ldrb  r3, [r3]
+mov   r2, #0x1
+lsl   r2, r3
+tst   r1, r2
+bne   uncompOAMD
+  lsl   r2, r5, #0x2      @ Basically, a,
+  add   r2, r5            @ for humans,
+  lsl   r2, #0x1          @ Convoluted way of
+  add   r2, r5            @ multiplying r2 with
+  lsl   r2, #0xB          @ OAMBuffer size, 0x5800.
+  ldr   r1, =gAISOAM_20041C8
+  add   r4, r1, r2
+  mov   r1, r4
+  swi   #0x11             @ Decompress.
+  
+  @ Vanilla, overwritten by hook.
+  ldr   r0, =0x57F0
+  add   r4, r0
+  mov   r0, #0x1
+  str   r0, [r4]          @ Seems to force last OAMData to be terminator.
+uncompOAMD:
+
+pop   {r4-r5}             @ Original r4 would've been overwritten but unused after this point.
+pop   {r0}
+bx    r0
