@@ -7,10 +7,10 @@ This is an environment that serves as an example use of [Another Animation Assem
 ## Implementation details
 The palette of the animation is grabbed from one frame's image. Which frame's palette is used might depend on which version of Python you're running. Frames are kept in a dictionary, which seems to be ordered in later versions of Python, but unordered in earlier versions. AAA grabs the first frame in the dictionary (which would be the first frame in the script if the dictionary is ordered) and uses its palette to construct the installer's palette. Only the first four palettes (or eight if using 2-palette mode) are used. 
 
-## How to use AAA.
+## How to use AAA
 If you want to use/test this environment, apply Main.event to an FE8U ROM using [Event Assembler](https://www.dropbox.com/s/4mql123thxb78kw/Event%20Assembler%20V11.1.3.zip?dl=0). This will install a repaletted version of [Spud & Gamma's bow knight](https://feuniverse.us/t/fire-emblem-resource-repository-battle-animations-portraits-music-etc/3326/1084). This repalette uses 27 colours, to show off AAA's two-palette option. The bow animation is set to overwrite battle animation entry 0x19, which is the Fighter's axe animation, and 0x3 which is Eirika's sword animation. The Fighter should be the first enemy you fight in the Prologue of FE8U, so you can see the animation in action as soon as possible (although hits don't display correctly, maybe due to the bow script not matching the weapon used).
 
-I've added a [batch script](Anims/5. Bow/AAA.bat) to both weapon folders of the bow knight. Simply drag'n'drop the battle animation script (bow.txt for example) onto the AAA.bat file. It expects AAA.exe to be two directories back from the current one, but changing this should be straightforward. If everything works correctly this'll run AAA.exe and produce a \<scriptname\>Installer.event file. You'll have to replace the AnimTableEntry(\<scriptname\>) slot with the animation slot you wish to overwrite. You can then include this installer file in your buildfile, and re-build your ROM to see the results.
+I've added a [batch script](Anims/BowKn/5. Bow/AAA.bat) to both weapon folders of the bow knight. Simply drag'n'drop the battle animation script (bow.txt for example) onto the AAA.bat file. It expects AAA.exe to be two directories back from the current one, but changing this should be straightforward. If everything works correctly this'll run AAA.exe and produce a \<scriptname\>Installer.event file. You'll have to replace the AnimTableEntry(\<scriptname\>) slot with the animation slot you wish to overwrite. You can then include this installer file in your buildfile, and re-build your ROM to see the results.
 
 ### Options
 There's a few options you can add to the battle animation script to change AAA's output. These options can be added to the script in this format:
@@ -43,10 +43,7 @@ Sprites will not be split into smaller chunks if there's otherwise no room left 
 #### 1DSPRITES
 Sprite sheets will be set up to work with one-dimensional OBJ Character VRAM Mapping. There's info on 1D and 2D sprite mapping in [tonc](https://www.coranac.com/tonc/text/regobj.htm#sec-tiles). Normally, either OAM can be conserved at the cost of more sheets, (which costs more ROM and leads to more decompression in equal time) or more OAM will be consumed in exchange for fewer sheets. 1D sprites can use the best of both worlds. They conserve OAM *and* sheets. However, all vanilla battle animation spritesheets are made to be used with 2-dimensional mapping. These (and other battle sprites such as UI-stuff (item icons), battle & death quote portraits, spells using OBJ) would need re-doing to not get scrambled in 1D sprite mode. In my, admittedly limited, testing, earlier frames on 1D sheets still produce the same amount of sprites, whereas later ones produce fewer (makes sense in theory, I guess).
 
-
-
 ## TODO
-- I'll probably compress palettes after all. I'll have to allocate some 320 bytes of RAM, which isn't too much. As a result, less ROM will be consumed and two-palette animations should preview a little better in [FEBuilderGBA](https://github.com/FEBuilderGBA/FEBuilderGBA/).
 - It'd be nice if NOSPLITSPRITES and EMPTYTILEPER64 could be activated and deactived at other points in the script. This way a battle anim's standing motions and dodge frames could focus on using fewer sprites to allow the opposing battle animation to use more sprites when they're attacking, whilst the other modes could still allow more sprites.
 
 ## Closing

@@ -1,5 +1,5 @@
 # Input: Script. Also uses frames (PNGs) mentioned in script.
-# Output: Installer EA file, sheet binaries & pngs.
+# Output: Installer EA file.
 # More details in the README.
 # 
 # Many thanks to 7743's FEBuilderGBA. This implementation
