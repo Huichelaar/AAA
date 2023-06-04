@@ -58,7 +58,7 @@ bx    r3
 @ Use uncompressed OAMData if it's uncompressed.
 @ Registers:
 @   r0: AISSubjectID
-@   r1: OAMData offset.
+@   r1: OAMData buffer offset.
 @   r2: Free.
 @   r3: Free.
 @   r4: Pointer to AIS.

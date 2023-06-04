@@ -185,7 +185,7 @@ bne   uncompOAMD
   ldr   r0, =0x57F0
   add   r4, r0
   mov   r0, #0x1
-  str   r0, [r4]          @ Seems to force last OAMData to be terminator.
+  str   r0, [r4]          @ Used by DummyFrames to immediately terminate oam.
 uncompOAMD:
 
 pop   {r4-r5}             @ Original r4 would've been overwritten but unused after this point.

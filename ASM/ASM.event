@@ -3,6 +3,12 @@
 
 PUSH
 
+  // During banims, when handling next AIS Frame in dummy frames,
+  // Instead of relying on a terminator prepared at the end of OAMData buffer,
+  // use a terminator in ROM for uncompressed OAMData.
+  ORG 0x5184
+  callHack_r3(BA2_dummyTerminatorHook)
+
   // During banim scaling, use FrameData, whether compressed or uncompressed.
   // Also OAMData, whether compressed or uncompressed.
   // Left AIS.
@@ -163,6 +169,10 @@ ALIGN 4; #include "decompBAnimHooks.lyn.event"
 ALIGN 4; #include "switchRoundHooks.lyn.event"
 ALIGN 4; BA2_commandDHook: #include "commandDHook.lyn.event"
 ALIGN 4; BA2_bAnimScaleHook: #include "bAnimScaleHook.lyn.event"
+ALIGN 4; BA2_dummyTerminatorHook: #include "dummyTerminatorHook.lyn.event"
+
+ALIGN 4; BA2_ROMDummyFrames:
+WORD 0x1 0x0 0x0 0x0
 
 ALIGN 4
 BA2_WhitePalette:
