@@ -23,7 +23,10 @@ PUSH
 
   // Reference FrameData, whether compressed or uncompressed, when executing command 0xD.
   ORG 0x592E8
-  callHack_r1(BA2_commandDHook)
+  callHack_r1(BA2_commandDFrameData)
+  // Use ROM OAMData Terminator when OAMData is uncompressed, when executing command 0xD.
+  ORG 0x59308
+  jumpToHack(BA2_commandDOAMData)
 
   // During LoadBattleAnimePalette, load FrameData, whether compressed or uncompressed.
   // Left AIS.
@@ -167,7 +170,7 @@ POP
 ALIGN 4; #include "bAnimInitHooks.lyn.event"
 ALIGN 4; #include "decompBAnimHooks.lyn.event"
 ALIGN 4; #include "switchRoundHooks.lyn.event"
-ALIGN 4; BA2_commandDHook: #include "commandDHook.lyn.event"
+ALIGN 4; #include "commandDHook.lyn.event"
 ALIGN 4; BA2_bAnimScaleHook: #include "bAnimScaleHook.lyn.event"
 ALIGN 4; BA2_dummyTerminatorHook: #include "dummyTerminatorHook.lyn.event"
 
