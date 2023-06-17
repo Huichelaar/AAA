@@ -7,9 +7,16 @@
 /*
 PUSH
 
+  // Hero unarmed anim.
+  ORG 0x8AF0E2
+  SHORT 0x3
+
   // O'Neill's palette
-  ORG 0xEF8204
-  POIN OneillUncompPal
+  // ORG 0xEF8204
+  // Gerik's Hero palette.
+  ORG 0xEF8124
+  POIN Anim_Bow_pal
+  // POIN OneillUncompPal
 
 POP
 

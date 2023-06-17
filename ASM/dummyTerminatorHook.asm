@@ -13,12 +13,21 @@ mov   r5, r1
 mov   r6, r2
 
 @ Grab battle animation struct instance.
-mov   r0, r6
-ldr   r3, =GetAISSubjectId
-bl    GOTO_R3
-ldr   r1, =gBattleAnimAnimationIndex
-lsl   r0, #0x1
-ldrh  r0, [r1, r0]
+ldr   r0, [r6, #0x44]     @ ekrUnitMainMini* which exists during promotion branch screen.
+cmp   r0, #0x0
+beq   noEkrUnitMainMini
+  mov   r1, #0x6
+  ldsh  r0, [r0, r1]
+  b     L1
+noEkrUnitMainMini:        @ If no ekrUnitMainMini*, use gBattleAnimAnimationIndex instead.
+  mov   r0, r6
+  ldr   r3, =GetAISSubjectId
+  bl    GOTO_R3
+  ldr   r1, =gBattleAnimAnimationIndex
+  lsl   r0, #0x1
+  ldrh  r0, [r1, r0]
+
+L1:
 lsl   r0, #0x5
 ldr   r1, =0x8059BD8      @ Pointer to battle animation struct array.
 ldr   r1, [r1]

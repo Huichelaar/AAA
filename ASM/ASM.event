@@ -28,6 +28,10 @@ PUSH
   ORG 0x59308
   jumpToHack(BA2_commandDOAMData)
 
+  // Don't move data past OBJ VRAM in RegisterAISSheetGraphics.
+  ORG 0x59958
+  jumpToHack(BA2_registerHalfSizeSheets)
+
   // During LoadBattleAnimePalette, load FrameData, whether compressed or uncompressed.
   // Left AIS.
   ORG 0x59A22
@@ -125,6 +129,19 @@ PUSH
   ORG 0x5A130
   callHack_r2(BA2_switchOAMData)
   
+  // When loading banims during promotion branch screen, use FrameData, whether compressed or uncompressed.
+  ORG 0x5A646
+  SHORT 0x46C0
+  jumpToHack(BA2_promoBranchFrameData)
+  // When loading banims during promotion branch screen, use OAMData, whether compressed or uncompressed.
+  ORG 0x5A67E
+  SHORT 0x46C0
+  jumpToHack(BA2_promoBranchOAMData)
+  // When loading banims during promotion branch screen, use PalData, whether compressed or uncompressed.
+  ORG 0x5A75A
+  SHORT 0x46C0
+  jumpToHack(BA2_promoBranchPalData)
+  
   // Use two palettes instead of one, when updating palettes.
   ORG 0x59A72       // When initially loading palettes.
   BYTE 0x10
@@ -154,6 +171,8 @@ PUSH
   BYTE 0x10
   ORG 0x548BA
   BYTE 0x10
+  ORG 0x5A78E       // Promo branch screen.
+  BYTE 0x10
   ORG 0x5CCC0       // When dance takes effect.
   BYTE 0x10
   ORG 0x5CCD6
@@ -171,6 +190,8 @@ ALIGN 4; #include "bAnimInitHooks.lyn.event"
 ALIGN 4; #include "decompBAnimHooks.lyn.event"
 ALIGN 4; #include "switchRoundHooks.lyn.event"
 ALIGN 4; #include "commandDHook.lyn.event"
+ALIGN 4; #include "promoBranchHooks.lyn.event"
+ALIGN 4; BA2_registerHalfSizeSheets: #include "registerHalfSizeSheets.lyn.event"
 ALIGN 4; BA2_bAnimScaleHook: #include "bAnimScaleHook.lyn.event"
 ALIGN 4; BA2_dummyTerminatorHook: #include "dummyTerminatorHook.lyn.event"
 
