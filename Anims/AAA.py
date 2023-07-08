@@ -257,6 +257,9 @@ class Frame:
         for spriteChunk in spriteChunks:
           (success, newSpriteChunks) = copySheet.addSpriteChunk(spriteChunk, NOSPLITSPRITES)
           if not success:
+            finished = False
+            totalNewSpriteChunks = totalNewSpriteChunks1
+            spriteChunks = self.spriteChunks
             totalNewSpriteChunks1.clear()
             totalNewSpriteChunksP.clear()
             break
@@ -391,9 +394,6 @@ class Sheet:
     else:   # Chunk not already in sheet.
     
       if not _1D_SPRITES:
-        # 2D sprites. Check if there's enough room in the sheet.
-        if self.freeTileCount < newSpriteChunk.w*newSpriteChunk.h:
-          return False, list()
         # Check if we can find a width by height block in the sheet.
         sheetCopy = Sheet()
         sheetCopy.copy(self)
@@ -452,8 +452,7 @@ class Sheet:
                     occupiedTiles[l] = False
                 break
             else:
-              print("ERROR: Couldn't split spritechunk into smaller ones. We shouldn't reach this!")
-              exit()
+              return False, list()
 
       else:
         # 1D sprites. Check if sheet has enough room.

@@ -8,7 +8,7 @@
 PUSH
   AnimTableEntry(Unarmed) // CHANGE THIS TO THE SLOT YOU ARE REPLACING
   String("CoolAnim")
-  WORD 0
+  WORD 6
   POIN Anim_Unarmed_sectiondata
   POIN Anim_Unarmed_framedata
   POIN Anim_Unarmed_rtl Anim_Unarmed_ltr Anim_Unarmed_pal
