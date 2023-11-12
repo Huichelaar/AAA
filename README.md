@@ -12,24 +12,30 @@ If you want to use/test this environment, apply Main.event to an FE8U ROM using 
 
 I've added a [batch script](Anims/BowKn/5.%20Bow/AAA.bat) to both weapon folders of the bow knight. Simply drag'n'drop the battle animation script (bow.txt for example) onto the AAA.bat file. It expects AAA.exe to be two directories back from the current one, but changing this should be straightforward. If everything works correctly this'll run AAA.exe and produce a \<scriptname\>Installer.event file. You'll have to replace the AnimTableEntry(\<scriptname\>) slot with the animation slot you wish to overwrite. You can then include this installer file in your buildfile, and re-build your ROM to see the results.
 
+If you wish to use AAA in a buildfile project you can forego the testing environment and install merely the ASM required for some of AAA's options by adding an `#include "ASM/ASM.event"` to your buildfile.
+
 ### Options
 There's a few options you can add to the battle animation script to change AAA's output. These options can be added to the script in this format:
 
 \@ \<option\> \<value\>
 
-These options need to be put at the start of the script, before "\/\/\/ \- Mode 1". Only EMPTYTILEPER64 actually uses the \<value\> argument. The other options don't take arguments. Some options require the game to read certain bits in the battle animation struct name string (word at +0x8) to confirm how to display these battle animations. AAA sets these bits when creating the battle animations, just make sure not to overwrite them, if you're changing the name string. Which bits are reserved for what can be seen in [Main.event](Main.event). These are the possible options:
+All of these options are optional. They can each work independently, none of them require other options to be enabled to be used. Some options do theoretically benefit in different ways from other options being enabled as clarified for each individual option.
+
+If you wish to use any options, they need to be put at the start of the script, before "\/\/\/ \- Mode 1". Only EMPTYTILEPER64 actually uses the \<value\> argument. The other options don't take arguments. Some options require the game to read certain bits in the battle animation struct name string (word at +0x8) to confirm how to display these battle animations. AAA sets these bits when creating the battle animations, just make sure not to overwrite them, if you're changing the name string. Which bits are reserved for what can be seen in [ASM.event](ASM/ASM.event).
+
+These are the possible options:
 
 #### UNCOMPPALDATA
-Palette data will not be compressed. You'll need to add an "\#include "ASM/ASM.event"" to your buildfile, to enable some asm that allows uncompressed palettes to display correctly.
+Palette data will not be compressed. You'll need to add an `\#include "ASM/ASM.event"` to your buildfile, to enable some asm that allows uncompressed palettes to display correctly.
 
 #### UNCOMPFRAMEDATA
-FrameData will not be compressed. You'll need to add an "\#include "ASM/ASM.event"" to your buildfile, to enable some asm that allows uncompressed FrameData to display correctly.
+FrameData will not be compressed. You'll need to add an `\#include "ASM/ASM.event"` to your buildfile, to enable some asm that allows uncompressed FrameData to display correctly.
 
 #### UNCOMPOAMDATA
-OAMData will not be compressed. You'll need to add an "\#include "ASM/ASM.event"" to your buildfile, to enable some asm that allows uncompressed OAMData to display correctly.
+OAMData will not be compressed. You'll need to add an `\#include "ASM/ASM.event"` to your buildfile, to enable some asm that allows uncompressed OAMData to display correctly.
 
 #### 2PALETTES
-Frames will be split in two, each using a different palette. This way it's possible to display two palettes at the cost of two free paletteslots, and more sprites (meaning more sheets, therefore more ROM consumption and more frequent decompression). You'll need to add an "\#include "ASM/ASM.event"" to your buildfile, to enable some asm that allows the second palette to display correctly. Extra RAM for the bigger palette size needs to be reserved when using this option, unless you're also running UNCOMPPALDATA. If the RAM location for this is already in use, consider repointing it in [Main.event](Main.event), or running UNCOMPPALDATA, so no extra RAM is used.
+Frames will be split in two, each using a different palette. This way it's possible to display two palettes at the cost of two free paletteslots, and more sprites (meaning more sheets, therefore more ROM consumption and more frequent decompression). You'll need to add an `\#include "ASM/ASM.event"` to your buildfile, to enable some asm that allows the second palette to display correctly. Extra RAM for the bigger palette size needs to be reserved when using this option, unless you're also running UNCOMPPALDATA. If the RAM location for this is already in use, consider repointing it in [ASM.event](ASM/ASM.event), or running UNCOMPPALDATA, so no extra RAM is used.
 
 #### HALFSIZESHEETS
 Sheets will only be half the usual size (256x32 instead of 256x64). This (in tandem with uncompressed palette, frame and OAM data) would allow for more battle anims to display at once. The split is horizontal (256x32 instead of 128x64) to avoid having to decompress the sheet elsewhere before then moving it to VRAM. This does mean 64x64 and 32x64 sprites won't fit and will be split into smaller sprites.
@@ -47,4 +53,4 @@ Sprite sheets will be set up to work with one-dimensional OBJ Character VRAM Map
 - It'd be nice if NOSPLITSPRITES and EMPTYTILEPER64 could be activated and deactived at other points in the script. This way a battle anim's standing motions and dodge frames could focus on using fewer sprites to allow the opposing battle animation to use more sprites when they're attacking, whilst the other modes could still allow more sprites.
 
 ## Closing
-If there's any bugs or other weirdness, feel free to let me know.
+If there's anything unclear or if there are any bugs or other weirdness, feel free to let me know.
